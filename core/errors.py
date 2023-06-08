@@ -1,0 +1,1 @@
+class RepositoryError(Exception): pass
