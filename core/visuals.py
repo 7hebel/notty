@@ -1,43 +1,9 @@
+from typing import Callable, Self, Any, Literal
 from colorama import init, Back, Fore
-from typing import Callable
-import os
+
+from core.path import Path
 
 init(autoreset=True)
-
-
-class Message:
-    """ Formatted messages. """
-
-    def unexpected_error(message: str):
-        print(f"[{Fore.RED}{Back.WHITE} UNEXPECTED ERROR {Fore.RESET}{Back.RESET}] {Fore.RED}{message}")
-        
-    def error(message: str):
-        print(f"[{Fore.WHITE}{Back.RED} ERROR {Fore.RESET}{Back.RESET}] {Fore.RED}{message}")
-
-    def warning(message: str):
-        print(f"[{Fore.BLACK}{Back.YELLOW} WARNING {Fore.RESET}{Back.RESET}] {Fore.YELLOW}{message}")
-
-    def info(message: str):
-        print(f"[{Fore.BLACK}{Back.BLUE} INFO {Fore.RESET}{Back.RESET}] {message}")
-        
-    def success(message: str):
-        print(f"[{Fore.BLACK}{Back.GREEN} SUCCESS {Fore.RESET}{Back.RESET}] {message}")
-
-    def custom(title: str, message: str):
-        print(f"[{Fore.BLACK}{Back.WHITE} {title} {Fore.RESET}{Back.RESET}] {message}")
-
-    def key_value(title: str, dictionary: dict):
-        print(f"\n{Fore.CYAN}{{ {Fore.RESET}{title} {Fore.CYAN}}} ")
-        for key, value in dictionary.items():
-            print(f"  • {Fore.CYAN}{key}{Fore.BLUE}:{Fore.RESET} {value}")
-
-    def bullet_list(title: str, points: list):
-        print(f"\n{Fore.CYAN}< {Fore.RESET}{title} {Fore.CYAN}> ")
-        for point in points:
-            print(f"  {Fore.YELLOW}•{Fore.RESET} {point.strip()}")
-
-        if len(points) == 0:
-            print(f"  {Fore.RED}• (blank)")
 
 
 class ProcessCallback:
@@ -62,7 +28,7 @@ class ProcessCallback:
         self._info = 0
         self._success = 0
 
-    def __enter__(self):
+    def __enter__(self) -> Self:
         if ProcessCallback.processes == 0:
             print("\n")
 
@@ -71,7 +37,7 @@ class ProcessCallback:
         print(f"{ProcessCallback._indent()}{Fore.LIGHTBLACK_EX}:")
         return self
 
-    def __exit__(self, ex_type, ex_value, ex_tb):
+    def __exit__(self, ex_type: type, ex_value: Exception, ex_tb: Any) -> Literal[True]:
         print(f"{ProcessCallback._indent()}{Fore.LIGHTBLACK_EX}:")
         print(f"{ProcessCallback._indent()}├─> {Fore.RED}{self._error} {Fore.YELLOW}{self._warn} {Fore.GREEN}{self._success} {Fore.RESET}{self._info}")
 
@@ -85,41 +51,74 @@ class ProcessCallback:
         ProcessCallback.processes -= 1
         return True
 
-    def error(self, value):
+    def error(self, value: str) -> None:
         print(f"{ProcessCallback._indent()}{Fore.RED}• {value}")
         self._error += 1
 
-    def warn(self, value):
+    def warn(self, value: str) -> None:
         print(f"{ProcessCallback._indent()}{Fore.YELLOW}• {value}")
         self._warn += 1
 
-    def info(self, value):
+    def info(self, value: str) -> None:
         print(f"{ProcessCallback._indent()}• {value}")
         self._info += 1
 
-    def success(self, value):
+    def success(self, value: str) -> None:
         print(f"{ProcessCallback._indent()}{Fore.GREEN}• {value}")
         self._success += 1
 
 
-def clear_screen():
-    os.system("cls || clear")
+# -- OUTPUT --
 
-def get_input_with_validation(prompt: str, validator: Callable) -> str:
+display_error: Callable[[str], None] = lambda message: print(f"[{Fore.WHITE}{Back.RED} ERROR {Fore.RESET}{Back.RESET}] {Fore.RED}{message}")
+display_warning: Callable[[str], None] = lambda message: print(f"[{Fore.BLACK}{Back.YELLOW} WARNING {Fore.RESET}{Back.RESET}] {Fore.YELLOW}{message}")
+display_info: Callable[[str], None] = lambda message: print(f"[{Fore.BLACK}{Back.BLUE} INFO {Fore.RESET}{Back.RESET}] {message}")
+display_success: Callable[[str], None] = lambda message: print(f"[{Fore.BLACK}{Back.GREEN} SUCCESS {Fore.RESET}{Back.RESET}] {message}")
+
+def display_key_value(title: str, dictionary: dict[str, str]) -> None:
+    print(f"\n{Fore.CYAN}{{ {Fore.RESET}{title} {Fore.CYAN}}} ")
+    for key, value in dictionary.items():
+        print(f"  • {Fore.CYAN}{key}{Fore.BLUE}:{Fore.RESET} {value}")
+
+def display_bullet_list(title: str, points: list[str]) -> None:
+    print(f"\n{Fore.CYAN}< {Fore.RESET}{title} {Fore.CYAN}> ")
+    for point in points:
+        print(f"  {Fore.YELLOW}•{Fore.RESET} {point.strip()}")
+
+    if len(points) == 0:
+        print(f"  {Fore.RED}• (blank)")
+
+def display_file_content(path: Path) -> None:
+    with open(str(path)) as file:
+        lines = file.readlines()
+    
+    lineno_space = 2 + len(str(len(lines)))
+
+    for index, line_content in enumerate(lines):
+        lineno = str(index+1).rjust(lineno_space)
+        line = f"{Fore.CYAN}{lineno}{Fore.LIGHTBLACK_EX} | {Fore.RESET}{line_content.rstrip()}"
+        print(line)
+
+
+
+# -- INPUT --
+
+def get_input_with_validation(prompt: str, validator: Callable[[str], bool]) -> str:
     prompt = f"\n {Fore.MAGENTA}?{Fore.RESET} {prompt} {Fore.MAGENTA}~{Fore.RESET} "
 
     while True:
         user = input(prompt)
 
-        if validator(user):
-            return user
-        else:
+        if not validator(user):
             print(f" {Fore.RED}╰ ! {Fore.RESET}Invalid response.")
+            continue
+
+        return user
 
 def get_boolean_response(prompt: str) -> bool:
     true = ["yes", "y", "1", "t", "true"]
     false = ["no", "n", "0", "f", "false"]
-    prompt = f"\n {Fore.GREEN}T{Fore.LIGHTBLACK_EX}/{Fore.RED}f {Fore.RESET}{prompt} {Fore.MAGENTA}?{Fore.RESET} "
+    prompt = f"\n {Fore.GREEN}T{Fore.RED}f {Fore.RESET}{prompt} {Fore.MAGENTA}?{Fore.RESET} "
 
     while True:
         user = input(prompt).lower()
