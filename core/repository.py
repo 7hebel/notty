@@ -22,10 +22,10 @@ SAVE_DATA_FILE: str = "notty.save"
 REPO_STRUCTURE: dict[str, None | dict[str, Any]] = {
     "saves/": None,
     "bin/": None,
-    "notes.txt": None,
+    "notes.txt": "All your project's notes.",
     "todo.json": BLANK_TODO,
     "notty.meta": {},
-    "notty.ignore": None,
+    "notty.ignore": ".notty\n__pycache__",
 }
 
 
@@ -77,6 +77,8 @@ class Repository:
                     raise Errors.RepositoryError(
                         f"There is repository in higher level directory: {parent_path}"
                     )
+            path.touch()
+            callback.success("created main directory .notty/")
 
             for item, data in REPO_STRUCTURE.items():
                 if item.endswith("/"):
@@ -92,12 +94,21 @@ class Repository:
                     continue
 
                 with open(str(file), "w+", encoding="utf8") as file_obj:
-                    json.dump(data, file_obj)
-                callback.info(f"filled file: {item}")
+                    if isinstance(data, dict):
+                        json.dump(data, file_obj)
+
+                    if isinstance(data, str):
+                        file_obj.write(data)
+
+                callback.info(f"filled file : {item}")
 
             meta_path = path / "notty.meta"
             Repository._build_meta(meta_path)
             callback.success("filled meta")
+
+            if os.name == "nt":
+                os.system(f"attrib +H /D {repr(path)}")
+                callback.info("hidden .notty/ using NT's method")
 
         return Repository(src_path)
 
@@ -285,4 +296,4 @@ class Repository:
         """ Get all ignored patterns from notty.ignore. One line = one pattern. """
 
         with open(str(self.repo_path / "notty.ignore"), encoding="utf8") as file:
-            return file.readlines()
+            return [line for line in file.readlines() if line.strip()]

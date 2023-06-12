@@ -10,7 +10,6 @@ from core import moment
 from core import files
 
 repository = Repository(os.getcwd())
-todo_list = Todo.TodoList(str(repository.repo_path / "todo.json"))
 
 
 def repo_status_validator(status: bool):
@@ -171,28 +170,34 @@ def show_notes():
 @repo_status_validator(True)
 def show_todo():
     """ Display all to do entries. """
+    
+    todo_list = Todo.TodoList(str(repository.repo_path / "todo.json"))
     todo_list.display_tasks()
 
 @click.command("rm")
 @click.argument("index", type=int)
 @repo_status_validator(True)
 def remove_task(index):
-    print(todo_list.as_dict())
+    """ Remove task from todo.json file. """
+    
+    todo_list = Todo.TodoList(str(repository.repo_path / "todo.json"))
     todo_list.remove_task(index)
-    print(todo_list.as_dict())
 
 @click.command("add")
 @click.argument("content", type=str)
 @click.argument("importance", type=str, required=False, default="low")
 @repo_status_validator(True)
 def add_task(content, importance):
+    """ Add new task and save it. """
+    
+    todo_list = Todo.TodoList(str(repository.repo_path / "todo.json"))
     importance = importance.lower()
 
-    if importance in ("l", "low"):
+    if importance in ("l", "low", "1"):
         importance = Todo.Importance.LOW
-    elif importance in ("m", "mid", "medium"):
+    elif importance in ("m", "mid", "medium", "2"):
         importance = Todo.Importance.MEDIUM
-    elif importance in ("h", "high", "!"):
+    elif importance in ("h", "high", "!", "3"):
         importance = Todo.Importance.HIGH
     else:
         visuals.display_warning(f"Invalid importance level: {importance}. [L]ow/[M]edium/[H]igh")
@@ -204,7 +209,10 @@ def add_task(content, importance):
 @click.command("imp")
 @click.argument("index", type=int)
 @click.argument("level", type=str)
-def change_importance(index, level):
+def update_importance(index, level):
+    """ Change level of importance of a task. """
+    
+    todo_list = Todo.TodoList(str(repository.repo_path / "todo.json"))
     try:
         task: Todo.Task = todo_list.tasks[index]
         current_int = task.importance.value
@@ -246,7 +254,10 @@ def change_importance(index, level):
 @click.command("state")
 @click.argument("index", type=int)
 @click.argument("level", type=str)
-def change_state(index, level):
+def update_state(index, level):
+    """ Update task's state. """
+    
+    todo_list = Todo.TodoList(str(repository.repo_path / "todo.json"))
     try:
         task: Todo.Task = todo_list.tasks[index]
         current_int = task.state.value
@@ -258,7 +269,6 @@ def change_state(index, level):
         ("pending", "p", "1"): Todo.State.PENDING,
         ("in_progress", "i", "2"): Todo.State.IN_PROGRESS,
         ("done", "finished", "d", "f", "3"): Todo.State.FINISHED,
-
     }
 
     if level == "+":
@@ -301,8 +311,8 @@ def todo():
 todo.add_command(show_todo)
 todo.add_command(remove_task)
 todo.add_command(add_task)
-todo.add_command(change_importance)
-todo.add_command(change_state)
+todo.add_command(update_importance)
+todo.add_command(update_state)
 
 @click.group()
 def notty():

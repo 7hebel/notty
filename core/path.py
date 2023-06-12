@@ -27,6 +27,8 @@ class Path:
         return self.path
 
     def __repr__(self) -> str:
+        if self.path.endswith("/"):
+            return self.path.removesuffix("/")
         return self.path
 
     def __add__(self, sub_path: object) -> "Path":
