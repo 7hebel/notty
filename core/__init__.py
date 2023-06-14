@@ -1,2 +1,2 @@
 """ Notty's core. """
-from . import repository
+from . import *
