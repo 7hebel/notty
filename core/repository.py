@@ -25,7 +25,7 @@ REPO_STRUCTURE: dict[str, None | dict[str, Any]] = {
     "notes.txt": "All your project's notes.",
     "todo.json": BLANK_TODO,
     "notty.meta": {},
-    "notty.ignore": ".notty\n__pycache__",
+    "notty.ignore": "# Files with names matching patterns below\n# will not be saved. Use # for comments, * for any.\n# *.pyc = no files ending with .pyc will be saved.\n.notty\n__pycache__",
 }
 
 
@@ -296,4 +296,4 @@ class Repository:
         """ Get all ignored patterns from notty.ignore. One line = one pattern. """
 
         with open(str(self.repo_path / "notty.ignore"), encoding="utf8") as file:
-            return [line for line in file.readlines() if line.strip()]
+            return [line.strip() for line in file.readlines() if line.strip() and not line.startswith("#")]

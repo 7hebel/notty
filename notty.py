@@ -134,6 +134,24 @@ def forget(save_hash):
     repository.remove_save(save_obj)
     visuals.display_success(f"Forgot save: {str(save_obj.hash)}")
 
+@click.command("ignore")
+@repo_status_validator(True)
+def ignore():
+    """ Open an built in editor with ignore file content. """
+    with open(str(repository.repo_path / "notty.ignore"), "r") as file:
+        content = file.read()
+
+    with open(str(repository.repo_path / "notty.ignore"), "w+") as file:
+        new_content = click.edit(content)
+        if new_content is None:
+            file.write(content)
+            visuals.display_warning("No changes has been saved.")
+        else:
+            file.write(new_content)
+            visuals.display_success("Ignore file saved.")
+
+    print(repository.get_ignore_patterns())
+
 
 # -- NOTES -- #
 
@@ -154,8 +172,12 @@ def edit_notes():
 
     with open(str(repository.repo_path / "notes.txt"), "w+") as file:
         new_content = click.edit(content)
-        file.write(new_content)
-    visuals.display_success("Notes saved.")
+        if new_content is None:
+            file.write(content)
+            visuals.display_warning("No changes has been saved.")
+        else:
+            file.write(new_content)
+            visuals.display_success("Notes saved.")
 
 @click.command("show")
 @repo_status_validator(True)
@@ -296,7 +318,9 @@ def update_state(index, level):
     visuals.display_error(f"Invalid state: {level} [P]ending,1/[I]n_progress,2/[F]inished,3 or +/-")
     return
 
-# -- GROUPS -- #
+
+
+# ---- GROUPS ---- #
 
 @click.group()
 def notes():
@@ -323,6 +347,7 @@ notty.add_command(list_saves)
 notty.add_command(describe_save)
 notty.add_command(rollback_save)
 notty.add_command(forget)
+notty.add_command(ignore)
 
 notty.add_command(notes)
 notty.add_command(todo)
