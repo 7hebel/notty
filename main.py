@@ -150,8 +150,6 @@ def ignore():
             file.write(new_content)
             visuals.display_success("Ignore file saved.")
 
-    print(repository.get_ignore_patterns())
-
 
 # -- NOTES -- #
 
