@@ -42,7 +42,7 @@ def init():
 @repo_status_validator(True)
 def save_current_state(comment: str, multiline: bool):
     """ Save current work state. """
-    if comment != "Not provided." and multiline:
+    if comment.lower() not in ("Not provided.", "-m", "--multiline") and multiline:
         raise click.UsageError("Only one comment option can be used. Choose -c or -m.")
 
     if multiline:

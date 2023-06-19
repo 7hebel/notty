@@ -39,7 +39,6 @@ IMPORTANCE_TRANSLATION: dict[int, str] = {
 }
 
 
-
 @dataclass
 class Task:
     """ Represents each task. """
