@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(
     name="notty",
@@ -6,7 +6,7 @@ setup(
     author="gental-py",
     author_email="gental.contact@gmail.com",
     url="https://github.com/gental-py/notty",
-    packages=["."],
+    packages=[".", "core"],
     install_requires=[
         'click',
         'colorama',
