@@ -43,9 +43,11 @@ class ProcessCallback:
 
         if ex_type is not None:
             print(f"{ProcessCallback._indent()}╰─> {Fore.RED}FAIL: {Fore.RESET}({str(ex_type)[8:-2]}) {Fore.RED}{ex_value}")
+            print(Fore.RESET)
     
         else:
             print(f"{ProcessCallback._indent()}╰─> {Fore.BLUE}{self.success_message}")
+            print(Fore.RESET)
         
         print(ProcessCallback._exit_indent())
         ProcessCallback.processes -= 1
